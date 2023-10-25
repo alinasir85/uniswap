@@ -11,7 +11,8 @@ import {
 import {utils} from "ethers";
 import "dotenv/config";
 
-export const NORI_SWAP_ABI = [
+const NORI_CONTRACT = "0x6d14906698f636AB6fd9209518b0e9DA2d9eeEEF";
+const NORI_SWAP_ABI = [
     "function swap(address recipient, uint256 amount)",
 ];
 
@@ -26,7 +27,7 @@ const noriApprove = async () => {
             )
             .toString();
         const contractCallData = approveInterface.encodeFunctionData("approve", [
-            "0x6d14906698f636AB6fd9209518b0e9DA2d9eeEEF",
+            NORI_CONTRACT,
             paddedAmount,
         ]);
         const gasPrice = await getFee(MATIC_NETWORK);

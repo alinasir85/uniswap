@@ -3,7 +3,8 @@ import {PeerType, TransactionOperation,} from "fireblocks-sdk";
 import {APPROVE_ABI, fireblocks, getFee, MATIC_NETWORK, OTA_USDC_WALLET_ADDRESS} from "../utils";
 import {utils} from "ethers";
 
-export const MCO2_RETIRE_ABI = [
+const MCO2_CONTRACT = "0xeDAEFCf60e12Bd331c092341D5b3d8901C1c05A8";
+const MCO2_RETIRE_ABI = [
   "function offsetCarbon(uint256 _carbonTon, string _transactionInfo, string _onBehalfOf)",
 ];
 
@@ -18,7 +19,7 @@ const mco2Approve = async () => {
         )
         .toString();
     const contractCallData = approveInterface.encodeFunctionData("approve", [
-      "0xeDAEFCf60e12Bd331c092341D5b3d8901C1c05A8",
+      MCO2_CONTRACT,
       paddedAmount,
     ]);
     const gasPrice = await getFee(MATIC_NETWORK);
@@ -74,7 +75,7 @@ const mco2Retire = async () => {
       destination: {
         type: PeerType.ONE_TIME_ADDRESS,
         oneTimeAddress: {
-          address: "0xeDAEFCf60e12Bd331c092341D5b3d8901C1c05A8"
+          address: MCO2_CONTRACT
         }
       },
       gasPrice,

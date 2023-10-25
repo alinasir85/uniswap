@@ -3,8 +3,8 @@ import {APPROVE_ABI, CPCO2_ADDRESS, fireblocks, getFee, MATIC_NETWORK, OTA_USDC_
 import {utils} from "ethers";
 import "dotenv/config";
 
-
-export const CPCO2_RETIRE_ABI = [
+const CPCO2_CONTRACT = "0xb74bF92EDC6921228D36225E165fE0cb1FE7f882";
+const CPCO2_RETIRE_ABI = [
   "function retire(uint256 tokenId, uint256 amount)",
 ];
 
@@ -19,7 +19,7 @@ const cpcoApprove = async () => {
         )
         .toString();
     const contractCallData = approveInterface.encodeFunctionData("approve", [
-      "0xb74bF92EDC6921228D36225E165fE0cb1FE7f882",
+      CPCO2_CONTRACT,
       paddedAmount,
     ]);
     const gasPrice = await getFee(MATIC_NETWORK);
@@ -74,7 +74,7 @@ const cpcoRetire = async () => {
       destination: {
         type: PeerType.ONE_TIME_ADDRESS,
         oneTimeAddress: {
-          address: "0xb74bF92EDC6921228D36225E165fE0cb1FE7f882"
+          address: CPCO2_CONTRACT
         }
       },
       gasPrice,
