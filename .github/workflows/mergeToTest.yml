@@ -47,20 +47,13 @@ jobs:
 
       - name: Automatically merge the PR
         if: ${{ env.CHECK_TARGET_BRANCH == 'refs/heads/develop' }}
-        run: |
-          # Extract PR URL from environment
-          PR_URL="${{ env.PR_URL }}"
-          echo "PR: $PR_URL"
-          
-          # Use the GitHub API to merge the PR
-          curl -X PUT \
-            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            -d '{
-              "commit_title": "Merge pull request",
-              "commit_message": "Automatically merged",
-              "sha": "auto"
-            }' \
-            "https://api.github.com/repos/${{ github.repository }}/pulls/${{ env.PR_URL }}/merge"
-
+        uses: reitermarkus/automerge@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          merge-method: rebase
+          do-not-merge-labels: never-merge
+          required-labels: automerge
+          pull-request: ${{ env.PR_URL }}
+          dry-run: false
         env:
           GH_PAT: ${{ secrets.GH_PAT }}
