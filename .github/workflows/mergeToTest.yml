@@ -40,7 +40,9 @@ jobs:
             }' \
             "https://api.github.com/repos/${{ github.repository }}/pulls" | jq -r '.html_url')
 
-          echo "Created PR: $PR_URL"
+          PR_NUMBER=$(basename $PR_URL)
+          echo "Created PR: $PR_URL with PR_NUMBER: $PR_NUMBER"
+          echo "PR_NUMBER=$PR_NUMBER" >> $GITHUB_ENV
           echo "PR_URL=$PR_URL" >> $GITHUB_ENV
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -51,7 +53,7 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           merge-method: rebase
-          pull-request: ${{ env.PR_URL }}
+          pull-request: ${{ env.PR_NUMBER }}
           dry-run: false
         env:
           GH_PAT: ${{ secrets.GH_PAT }}
