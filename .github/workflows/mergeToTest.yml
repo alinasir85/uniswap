@@ -1,0 +1,36 @@
+name: Merge develop to test-mode
+
+on:
+  push:
+    branches:
+      - 'develop'
+
+jobs:
+  merge-branches:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check PR target branch
+        id: check_target_branch
+        run: echo "CHECK_TARGET_BRANCH=${{ github.ref }}" >> $GITHUB_ENV
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check out the repository
+        uses: actions/checkout@v3
+
+      - name: Fetch all branches
+        run: git fetch --all
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Merge to Test Mode
+        if: ${{ env.CHECK_TARGET_BRANCH == 'refs/heads/develop' }}
+        run: |
+          git config --global user.email "github-actions@github.com"
+          git config --global user.name "GitHub Actions"
+          git checkout test-mode
+          git merge --allow-unrelated-histories --strategy-option=theirs origin/develop
+          git push origin test-mode
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
