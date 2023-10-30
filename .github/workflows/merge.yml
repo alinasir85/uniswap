@@ -28,7 +28,8 @@ jobs:
         if: ${{ steps.check_target_branch.outputs.check_target_branch == 'develop' }}
         run: |
           git checkout test-mode
-          git pull origin test-mode
+          git merge develop
+          git push origin test-mode
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -36,6 +37,7 @@ jobs:
         if: ${{ steps.check_target_branch.outputs.check_target_branch == 'test-mode' }}
         run: |
           git checkout main
-          git pull origin main
+          git merge test-mode
+          git push origin main
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
