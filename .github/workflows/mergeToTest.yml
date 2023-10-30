@@ -1,9 +1,9 @@
-name: Merge to Test and Main
+name: Merge develop to test-mode
 
 on:
   push:
     branches:
-      - '*'
+      - 'develop'
 
 jobs:
   merge-branches:
@@ -32,16 +32,5 @@ jobs:
           git checkout test-mode
           git merge --allow-unrelated-histories --strategy-option=theirs origin/develop
           git push origin test-mode
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Merge to Main
-        if: ${{ env.CHECK_TARGET_BRANCH == 'refs/heads/test-mode' }}
-        run: |
-          git config --global user.email "github-actions@github.com"
-          git config --global user.name "GitHub Actions"
-          git checkout main
-          git merge --allow-unrelated-histories --strategy-option=theirs origin/test-mode
-          git push origin main
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
