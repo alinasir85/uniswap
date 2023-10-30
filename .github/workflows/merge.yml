@@ -1,46 +1,52 @@
-name: Merge to Test and Main
+name: Auto Merge Workflow
 
 on:
   pull_request:
     types:
       - closed
+
 jobs:
-  merge-branches:
+  automerge:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Check PR target branch
-        id: check_target_branch
-        run: echo "::set-output name=check_target_branch::${{ github.event.pull_request.base.ref }}"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Check PR merged to develop
+        id: pr_merged_to_develop
+        uses: octokit/request-action@v2.x
+        with:
+          route: GET /repos/:repository/pulls
+          repository: ${{ github.repository }}
+          pr_base: develop
+          pr_state: closed
+          pr_merged: true
 
-      - name: Check out the repository
-        uses: actions/checkout@v2
+      - name: Check PR merged to test-mode
+        id: pr_merged_to_test_mode
+        uses: octokit/request-action@v2.x
+        with:
+          route: GET /repos/:repository/pulls
+          repository: ${{ github.repository }}
+          pr_base: test-mode
+          pr_state: closed
+          pr_merged: true
 
-      - name: Fetch all branches
-        run: git fetch --all
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Check PR merged to main
+        id: pr_merged_to_main
+        uses: octokit/request-action@v2.x
+        with:
+          route: GET /repos/:repository/pulls
+          repository: ${{ github.repository }}
+          pr_base: main
+          pr_state: closed
+          pr_merged: true
 
-      - name: Merge to Test Mode
-        if: ${{ steps.check_target_branch.outputs.check_target_branch == 'develop' }}
+      - name: Create PR from develop to test-mode
+        if: steps.pr_merged_to_develop.outputs.data != '[]' && steps.pr_merged_to_test_mode.outputs.data == '[]'
         run: |
-          git config --global user.email "github-actions@github.com"
-          git config --global user.name "GitHub Actions"
-          git checkout test-mode
-          git merge --allow-unrelated-histories origin/develop
-          git push origin test-mode
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Create a pull request from develop to test-mode
+          hub pull-request -b test-mode -h develop -m "Automated PR from develop to test-mode" -a
 
-      - name: Merge to Main
-        if: ${{ steps.check_target_branch.outputs.check_target_branch == 'test-mode' }}
+      - name: Create PR from test-mode to main
+        if: steps.pr_merged_to_test_mode.outputs.data != '[]' && steps.pr_merged_to_main.outputs.data == '[]'
         run: |
-          git config --global user.email "github-actions@github.com"
-          git config --global user.name "GitHub Actions"
-          git checkout main
-          git merge --allow-unrelated-histories origin/test-mode
-          git push origin main
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Create a pull request from test-mode to main
+          hub pull-request -b main -h test-mode -m "Automated PR from test-mode to main" -a
