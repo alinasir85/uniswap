@@ -52,8 +52,8 @@ jobs:
         uses: reitermarkus/automerge@v2
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          merge-method: rebase
+          merge-method: merge
           pull-request: ${{ env.PR_NUMBER }}
           dry-run: false
         env:
-          GH_PAT: ${{ secrets.GH_PAT }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
