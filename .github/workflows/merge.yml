@@ -22,7 +22,6 @@ jobs:
       - name: Merge to Test Mode
         if: ${{ steps.check_target_branch.outputs.check_target_branch == 'develop' }}
         run: |
-          git checkout test-mode
           git pull origin develop
           git push origin test-mode
         env:
@@ -31,8 +30,7 @@ jobs:
       - name: Merge to Main
         if: ${{ steps.check_target_branch.outputs.check_target_branch == 'test-mode' }}
         run: |
-          git checkout main
-          git merge test-mode
+          git pull origin test-mode
           git push origin main
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
