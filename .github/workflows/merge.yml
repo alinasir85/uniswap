@@ -12,12 +12,12 @@ jobs:
     steps:
       - name: Check PR target branch
         id: check_target_branch
-        run: echo "::set-output name=check_target_branch::${{ github.event.pull_request.base.ref }}"
+        run: echo "CHECK_TARGET_BRANCH=${{ github.event.pull_request.base.ref }}" >> $GITHUB_ENV
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Check out the repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Fetch all branches
         run: git fetch --all
@@ -25,7 +25,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Merge to Test Mode
-        if: ${{ steps.check_target_branch.outputs.check_target_branch == 'develop' }}
+        if: ${{ env.CHECK_TARGET_BRANCH == 'develop' }}
         run: |
           git config --global user.email "github-actions@github.com"
           git config --global user.name "GitHub Actions"
@@ -36,7 +36,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Merge to Main
-        if: ${{ steps.check_target_branch.outputs.check_target_branch == 'test-mode' }}
+        if: ${{ env.CHECK_TARGET_BRANCH == 'test-mode' }}
         run: |
           git config --global user.email "github-actions@github.com"
           git config --global user.name "GitHub Actions"
