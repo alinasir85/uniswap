@@ -51,13 +51,16 @@ jobs:
           # Extract PR URL from environment
           PR_URL="${{ env.PR_URL }}"
           echo "PR: $PR_URL"
-          curl -X POST \
+          
+          # Use the GitHub API to merge the PR
+          curl -X PUT \
             -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            -H "Accept: application/vnd.github.v3+json" \
             -d '{
-              "sha": "auto",
-              "merge_method": "merge"
+              "commit_title": "Merge pull request",
+              "commit_message": "Automatically merged",
+              "sha": "auto"
             }' \
-            "$PR_URL/merge"
+            "https://api.github.com/repos/${{ github.repository }}/pulls/${{ env.PR_URL }}/merge"
+
         env:
           GH_PAT: ${{ secrets.GH_PAT }}
