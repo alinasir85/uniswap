@@ -19,18 +19,23 @@ jobs:
       - name: Check out the repository
         uses: actions/checkout@v2
 
+      - name: Fetch all branches
+        run: git fetch --all
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Merge to Test Mode
         if: ${{ steps.check_target_branch.outputs.check_target_branch == 'develop' }}
         run: |
-          git pull origin develop
-          git push origin test-mode
+          git checkout test-mode
+          git pull origin test-mode
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Merge to Main
         if: ${{ steps.check_target_branch.outputs.check_target_branch == 'test-mode' }}
         run: |
-          git pull origin test-mode
-          git push origin main
+          git checkout main
+          git pull origin main
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
