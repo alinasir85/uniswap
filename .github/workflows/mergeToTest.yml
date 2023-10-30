@@ -41,14 +41,19 @@ jobs:
             "https://api.github.com/repos/${{ github.repository }}/pulls" | jq -r '.html_url')
 
           echo "Created PR: $PR_URL"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-          # Automatically merge the PR
+      - name: Automatically merge the PR
+        if: ${{ env.CHECK_TARGET_BRANCH == 'refs/heads/develop' }}
+        run: |
+          # Use a Personal Access Token (PAT) to merge the PR
           curl -X PUT \
-            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Authorization: token ${{ secrets.GH_PAT }}" \
             -d '{
               "commit_title": "Merge pull request",
               "merge_method": "merge"
             }' \
             "$PR_URL/merge"
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_PAT: ${{ secrets.GH_PAT }}
