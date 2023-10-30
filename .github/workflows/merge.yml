@@ -16,6 +16,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Check out the repository
+        uses: actions/checkout@v2
+
       - name: Merge to Test Mode
         if: ${{ steps.check_target_branch.outputs.check_target_branch == 'develop' }}
         run: |
