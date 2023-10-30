@@ -11,42 +11,54 @@ jobs:
     steps:
       - name: Check PR merged to develop
         id: pr_merged_to_develop
-        uses: octokit/request-action@v2.x
-        with:
-          route: GET /repos/:repository/pulls
-          repository: ${{ github.repository }}
-          pr_base: develop
-          pr_state: closed
-          pr_merged: true
+        run: |
+          prs=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" "https://api.github.com/repos/${{ github.repository }}/pulls?base=develop&state=closed")
+          if [[ $prs == *'"merged_at":'* ]]; then
+            echo "PR merged to develop"
+            echo "::set-output name=merged_to_develop::true"
+          else
+            echo "No PR merged to develop"
+            echo "::set-output name=merged_to_develop::false"
+          fi
 
       - name: Check PR merged to test-mode
         id: pr_merged_to_test_mode
-        uses: octokit/request-action@v2.x
-        with:
-          route: GET /repos/:repository/pulls
-          repository: ${{ github.repository }}
-          pr_base: test-mode
-          pr_state: closed
-          pr_merged: true
+        run: |
+          prs=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" "https://api.github.com/repos/${{ github.repository }}/pulls?base=test-mode&state=closed")
+          if [[ $prs == *'"merged_at":'* ]]; then
+            echo "PR merged to test-mode"
+            echo "::set-output name=merged_to_test_mode::true"
+          else
+            echo "No PR merged to test-mode"
+            echo "::set-output name=merged_to_test_mode::false"
+          fi
 
       - name: Check PR merged to main
         id: pr_merged_to_main
-        uses: octokit/request-action@v2.x
-        with:
-          route: GET /repos/:repository/pulls
-          repository: ${{ github.repository }}
-          pr_base: main
-          pr_state: closed
-          pr_merged: true
+        run: |
+          prs=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" "https://api.github.com/repos/${{ github.repository }}/pulls?base=main&state=closed")
+          if [[ $prs == *'"merged_at":'* ]]; then
+            echo "PR merged to main"
+            echo "::set-output name=merged_to_main::true"
+          else
+            echo "No PR merged to main"
+            echo "::set-output name=merged_to_main::false"
+          fi
 
       - name: Create PR from develop to test-mode
-        if: steps.pr_merged_to_develop.outputs.data != '[]' && steps.pr_merged_to_test_mode.outputs.data == '[]'
+        if: steps.pr_merged_to_develop.outputs.merged_to_develop == 'true' && steps.pr_merged_to_test_mode.outputs.merged_to_test_mode == 'false'
         run: |
-          # Create a pull request from develop to test-mode
-          hub pull-request -b test-mode -h develop -m "Automated PR from develop to test-mode" -a
+          # Create a pull request from develop to test-mode using the GitHub API or your preferred method.
+          # Example using the GitHub CLI:
+          gh pr create --base test-mode --head develop --title "Automated PR from develop to test-mode" --body "Automated PR" --web
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create PR from test-mode to main
-        if: steps.pr_merged_to_test_mode.outputs.data != '[]' && steps.pr_merged_to_main.outputs.data == '[]'
+        if: steps.pr_merged_to_test_mode.outputs.merged_to_test_mode == 'true' && steps.pr_merged_to_main.outputs.merged_to_main == 'false'
         run: |
-          # Create a pull request from test-mode to main
-          hub pull-request -b main -h test-mode -m "Automated PR from test-mode to main" -a
+          # Create a pull request from test-mode to main using the GitHub API or your preferred method.
+          # Example using the GitHub CLI:
+          gh pr create --base main --head test-mode --title "Automated PR from test-mode to main" --body "Automated PR" --web
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
