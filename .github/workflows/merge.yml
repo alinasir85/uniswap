@@ -28,7 +28,7 @@ jobs:
         if: ${{ steps.check_target_branch.outputs.check_target_branch == 'develop' }}
         run: |
           git checkout test-mode
-          git merge develop
+          git merge --allow-unrelated-histories origin/develop
           git push origin test-mode
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -37,7 +37,7 @@ jobs:
         if: ${{ steps.check_target_branch.outputs.check_target_branch == 'test-mode' }}
         run: |
           git checkout main
-          git merge test-mode
+          git merge --allow-unrelated-histories origin/test-mode
           git push origin main
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
