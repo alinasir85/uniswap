@@ -12,7 +12,7 @@ jobs:
     steps:
       - name: Check PR target branch
         id: check_target_branch
-        run: echo "CHECK_TARGET_BRANCH=${{ github.event.pull_request.base.ref }}" >> $GITHUB_ENV
+        run: echo "CHECK_TARGET_BRANCH=${{ github.ref }}" >> $GITHUB_ENV
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
