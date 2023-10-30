@@ -12,7 +12,7 @@ jobs:
     steps:
       - name: Check PR target branch
         id: check_target_branch
-        run: echo "${{ github.event.ref }}" >> $GITHUB_ENV
+        run: echo "branch_${{ github.event.ref }}" >> $GITHUB_ENV
 
       - name: Check out the repository
         uses: actions/checkout@v3
@@ -23,7 +23,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Merge to Test Mode
-        if: ${{ env.check_target_branch == 'refs/heads/develop' }}
+        if: ${{ env.check_target_branch == 'branch_refs/heads/develop' }}
         run: |
           git config --global user.email "github-actions@github.com"
           git config --global user.name "GitHub Actions"
@@ -34,7 +34,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Merge to Main
-        if: ${{ env.check_target_branch == 'refs/heads/test-mode' }}
+        if: ${{ env.check_target_branch == 'branch_refs/heads/test-mode' }}
         run: |
           git config --global user.email "github-actions@github.com"
           git config --global user.name "GitHub Actions"
