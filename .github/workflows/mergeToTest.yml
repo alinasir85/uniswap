@@ -51,14 +51,12 @@ jobs:
           # Extract PR URL from environment
           PR_URL="${{ env.PR_URL }}"
           echo "PR: $PR_URL"
-          # Use a Personal Access Token (PAT) to merge the PR
           curl -X PUT \
-            -H "Authorization: token ${{ secrets.GH_PAT }}" \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
             -d '{
               "commit_title": "Merge pull request",
               "merge_method": "merge"
             }' \
             "$PR_URL/merge"
-
         env:
           GH_PAT: ${{ secrets.GH_PAT }}
