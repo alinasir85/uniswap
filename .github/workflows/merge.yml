@@ -13,6 +13,7 @@ jobs:
         id: pr_merged_to_develop
         run: |
           prs=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" "https://api.github.com/repos/${{ github.repository }}/pulls?base=develop&state=closed")
+          echo "Response from GitHub API: $prs"
           if [[ $prs == *'"merged_at":'* ]]; then
             echo "PR merged to develop"
             echo "::set-output name=merged_to_develop::true"
@@ -20,6 +21,8 @@ jobs:
             echo "No PR merged to develop"
             echo "::set-output name=merged_to_develop::false"
           fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Check PR merged to test-mode
         id: pr_merged_to_test_mode
