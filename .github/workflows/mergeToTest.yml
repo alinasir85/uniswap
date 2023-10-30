@@ -51,8 +51,6 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           merge-method: rebase
-          do-not-merge-labels: never-merge
-          required-labels: automerge
           pull-request: ${{ env.PR_URL }}
           dry-run: false
         env:
