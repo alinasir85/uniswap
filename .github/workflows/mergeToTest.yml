@@ -51,10 +51,11 @@ jobs:
           # Extract PR URL from environment
           PR_URL="${{ env.PR_URL }}"
           echo "PR: $PR_URL"
-          curl -X PUT \
+          curl -X POST \
             -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github.v3+json" \
             -d '{
-              "commit_title": "Merge pull request",
+              "sha": "auto",
               "merge_method": "merge"
             }' \
             "$PR_URL/merge"
