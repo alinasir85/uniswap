@@ -1,0 +1,33 @@
+name: Check Branch Sequence
+
+on:
+  push:
+    branches:
+      - 'feature*'
+      - develop
+      - test-mode
+      - main
+
+jobs:
+  check-sequence:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check Sequence
+        run: |
+          FROM_BRANCH="${GITHUB_REF#refs/heads/}"
+          TO_BRANCH="${GITHUB_BASE_REF#refs/heads/}"
+
+          if [[ "$TO_BRANCH" =~ ^feature.*$ ]] && [ "$FROM_BRANCH" != "develop" ]; then
+            echo "Invalid sequence. You can only push a 'feature*' branch after 'develop'."
+            exit 1
+          fi
+          if [ "$TO_BRANCH" == "test-mode" ] && [[ ! "$FROM_BRANCH" =~ ^feature.*$ ]]; then
+            echo "Invalid sequence. You can only push 'test-mode' branch after a 'feature*' branch."
+            exit 1
+          fi
+          if [ "$TO_BRANCH" == "main" ] && [ "$FROM_BRANCH" != "test-mode" ]; then
+            echo "Invalid sequence. You can only push 'main' branch after 'test-mode'."
+            exit 1
+          fi
+        continue-on-error: true
