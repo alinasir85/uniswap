@@ -3,7 +3,7 @@ name: Merge branch
 on:
   push:
     branches:
-      - '*'
+      - 'develop'
 
 jobs:
   merge-branches:
