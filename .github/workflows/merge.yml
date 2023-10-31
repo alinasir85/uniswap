@@ -1,14 +1,12 @@
-name: Merge branches
+name: Merge develop to test-mode
 
 on:
-  pull_request:
-    types:
-      - closed
+  push:
+    branches:
+      - '*'
 
 jobs:
   merge-branches:
-    if: github.event.pull_request.merged == true
-
     runs-on: ubuntu-latest
 
     steps:
@@ -60,36 +58,17 @@ jobs:
               "commit_message": "Merged by GitHub Actions"
             }' \
             "https://api.github.com/repos/${{ github.repository }}/pulls/${{ env.PR_NUMBER }}/merge"
-
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  merge-to-main:
-    needs: merge-branches
-    if: github.event.pull_request.merged == true
-
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Merge to Main
-        if: ${{ env.CHECK_TARGET_BRANCH == 'refs/heads/test-mode' }}
-        run: |
-          git config --global user.email "github-actions@github.com"
-          git config --global user.name "GitHub Actions"
+          
           # Create a PR using the GitHub API
           PR_URL=$(curl -X POST \
             -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
             -H "Accept: application/vnd.github.v3+json" \
             -d '{
-              "title": "Merge test-mode into main",
+              "title": "Merge develop into test-mode",
               "head": "test-mode",
               "base": "main"
             }' \
             "https://api.github.com/repos/${{ github.repository }}/pulls" | jq -r '.html_url')
 
-          PR_NUMBER=$(basename $PR_URL)
-          echo "Created PR: $PR_URL with PR_NUMBER: $PR_NUMBER"
-          echo "PR_NUMBER=$PR_NUMBER" >> $GITHUB_ENV
-          echo "PR_URL=$PR_URL" >> $GITHUB_ENV
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
