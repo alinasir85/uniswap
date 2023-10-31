@@ -85,7 +85,7 @@ jobs:
 
       - name: Create or Update PR for test-mode to main
         run: |
-          if [[ "${{ env.CHECK_TARGET_BRANCH }}" == 'refs/heads/test-mode' ]]; then
+          if [[ "${{ env.CHECK_TARGET_BRANCH }}" == 'refs/heads/develop' ]]; then
             # Check if a PR already exists from test-mode to main
             PR_EXISTING_URL=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
               "https://api.github.com/repos/${{ github.repository }}/pulls?head=test-mode&base=main")
