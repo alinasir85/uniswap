@@ -15,15 +15,15 @@ jobs:
           FROM_BRANCH="${{ github.event.pull_request.head.ref }}"
           TO_BRANCH="${{ github.event.pull_request.base.ref }}"
 
-          if [[ "$TO_BRANCH" =~ ^feature.*$ ]] && [ "$FROM_BRANCH" != "develop" ]; then
+          if [ "$TO_BRANCH" == "develop" ] && [[ ! "$FROM_BRANCH" =~ ^feature.*$ ]]; then
             echo "Invalid sequence. You can only open a pull request from a 'feature*' branch to 'develop'."
             exit 1
           fi
-          if [ "$TO_BRANCH" == "test-mode" ] && [[ ! "$FROM_BRANCH" =~ ^feature.*$ ]]; then
-            echo "Invalid sequence. You can only open a pull request from a 'test-mode' branch to a 'feature*' branch."
+          if [ "$TO_BRANCH" == "test-mode" ] && [ "$FROM_BRANCH" != "develop" ]; then
+            echo "Invalid sequence. You can only open a pull request from 'develop' to 'test-mode'."
             exit 1
           fi
           if [ "$TO_BRANCH" == "main" ] && [ "$FROM_BRANCH" != "test-mode" ]; then
-            echo "Invalid sequence. You can only open a pull request from 'main' to 'test-mode'."
+            echo "Invalid sequence. You can only open a pull request from 'test-mode' to 'main'."
             exit 1
-          fi
+          }
