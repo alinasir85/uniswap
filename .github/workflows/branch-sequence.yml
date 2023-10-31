@@ -12,8 +12,8 @@ jobs:
     steps:
       - name: Check Sequence
         run: |
-          FROM_BRANCH="${GITHUB_HEAD_REF}"
-          TO_BRANCH="${GITHUB_BASE_REF}"
+          FROM_BRANCH="${{ github.event.pull_request.head.ref }}"
+          TO_BRANCH="${{ github.event.pull_request.base.ref }}"
 
           if [[ "$TO_BRANCH" =~ ^feature.*$ ]] && [ "$FROM_BRANCH" != "develop" ]; then
             echo "Invalid sequence. You can only open a pull request from a 'feature*' branch to 'develop'."
@@ -22,8 +22,8 @@ jobs:
           if [ "$TO_BRANCH" == "test-mode" ] && [[ ! "$FROM_BRANCH" =~ ^feature.*$ ]]; then
             echo "Invalid sequence. You can only open a pull request from a 'test-mode' branch to a 'feature*' branch."
             exit 1
-          fi
+          }
           if [ "$TO_BRANCH" == "main" ] && [ "$FROM_BRANCH" != "test-mode" ]; then
             echo "Invalid sequence. You can only open a pull request from 'main' to 'test-mode'."
             exit 1
-          fi
+          }
