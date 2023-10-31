@@ -1,4 +1,4 @@
-name: Merge develop to test-mode
+name: Merge branch
 
 on:
   push:
@@ -24,7 +24,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Merge to Test Mode
+      - name: Create the PR
         if: ${{ env.CHECK_TARGET_BRANCH == 'refs/heads/develop' }}
         run: |
           git config --global user.email "github-actions@github.com"
@@ -64,11 +64,28 @@ jobs:
             -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
             -H "Accept: application/vnd.github.v3+json" \
             -d '{
-              "title": "Merge develop into test-mode",
+              "title": "Merge test-mode into main",
               "head": "test-mode",
               "base": "main"
             }' \
             "https://api.github.com/repos/${{ github.repository }}/pulls" | jq -r '.html_url')
+
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Send Notification
+        if: ${{ env.CHECK_TARGET_BRANCH == 'refs/heads/develop' }}
+        run: |
+          # Mention or notify users in a comment on the new PR
+          COMMENT_TEXT="The PR for merging test-mode into main has been created. Please review it."
+          curl -X POST \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            -d '{
+              "body": "'"$COMMENT_TEXT"'",
+              "in_reply_to": '"${PR_NUMBER}"'
+            }' \
+            "https://api.github.com/repos/${{ github.repository }}/issues/${{ env.PR_NUMBER }}/comments"
 
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
