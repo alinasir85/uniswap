@@ -49,11 +49,15 @@ jobs:
 
       - name: Automatically merge the PR
         if: ${{ env.CHECK_TARGET_BRANCH == 'refs/heads/develop' }}
-        uses: reitermarkus/automerge@v2
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          merge-method: merge
-          pull-request: ${{ env.PR_NUMBER }}
-          dry-run: false
+        run: |
+          # Automatically merge the PR using GitHub API
+          curl -X PUT \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -d '{
+              "commit_title": "Merge pull request",
+              "commit_message": "Merged by GitHub Actions"
+            }' \
+            "https://api.github.com/repos/${{ github.repository }}/pulls/${{ env.PR_NUMBER }}/merge"
+
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
