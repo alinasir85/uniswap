@@ -26,4 +26,4 @@ jobs:
           if [ "$TO_BRANCH" == "main" ] && [ "$FROM_BRANCH" != "test-mode" ]; then
             echo "Invalid sequence. You can only open a pull request from 'main' to 'test-mode'."
             exit 1
-          }
+          fi
