@@ -29,8 +29,35 @@ jobs:
         run: |
           git config --global user.email "github-actions@github.com"
           git config --global user.name "GitHub Actions"
-          git checkout test-mode
-          git merge --allow-unrelated-histories --strategy-option=theirs origin/develop
-          git push origin test-mode
+          # Create a PR using the GitHub API
+          PR_URL=$(curl -X POST \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            -d '{
+              "title": "Merge develop into test-mode",
+              "head": "develop",
+              "base": "test-mode"
+            }' \
+            "https://api.github.com/repos/${{ github.repository }}/pulls" | jq -r '.html_url')
+
+          PR_NUMBER=$(basename $PR_URL)
+          echo "Created PR: $PR_URL with PR_NUMBER: $PR_NUMBER"
+          echo "PR_NUMBER=$PR_NUMBER" >> $GITHUB_ENV
+          echo "PR_URL=$PR_URL" >> $GITHUB_ENV
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Automatically merge the PR
+        if: ${{ env.CHECK_TARGET_BRANCH == 'refs/heads/develop' }}
+        run: |
+          # Automatically merge the PR using GitHub API
+          curl -X PUT \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -d '{
+              "commit_title": "Merge pull request",
+              "commit_message": "Merged by GitHub Actions"
+            }' \
+            "https://api.github.com/repos/${{ github.repository }}/pulls/${{ env.PR_NUMBER }}/merge"
+
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
