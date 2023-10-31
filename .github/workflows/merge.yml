@@ -76,7 +76,7 @@ jobs:
       - name: Send Notification
         if: ${{ env.CHECK_TARGET_BRANCH == 'refs/heads/develop' }}
         run: |
-          # Mention or notify users in a comment on the new PR
+          # Mention or notify users in a comment on the new PR 
           COMMENT_TEXT="The PR for merging test-mode into main has been created. Please review it."
           curl -X POST \
             -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
