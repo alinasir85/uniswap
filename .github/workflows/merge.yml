@@ -1,12 +1,14 @@
-name: Merge branches
+name: Merge branch
 
 on:
-  push:
-    branches:
-      - '*'
+  pull_request:
+    types:
+      - closed
 
 jobs:
-  merge-branches:
+  merge-branch:
+    if: github.event.pull_request.merged == true
+
     runs-on: ubuntu-latest
 
     steps:
