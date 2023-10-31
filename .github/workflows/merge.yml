@@ -59,17 +59,31 @@ jobs:
             }' \
             "https://api.github.com/repos/${{ github.repository }}/pulls/${{ env.PR_NUMBER }}/merge"
           
-          # Create a PR using the GitHub API
-          PR_URL=$(curl -X POST \
-            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            -H "Accept: application/vnd.github.v3+json" \
-            -d '{
-              "title": "Merge test-mode into main",
-              "head": "test-mode",
-              "base": "main"
-            }' \
-            "https://api.github.com/repos/${{ github.repository }}/pulls" | jq -r '.html_url')
-          echo "Created PR: $PR_URL"
+            # Check if a PR already exists from test-mode to main
+            PR_EXISTING_URL=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+              "https://api.github.com/repos/${{ github.repository }}/pulls?head=test-mode&base=main")
+
+            if [[ $(echo $PR_EXISTING_URL | jq length) -gt 0 ]]; then
+              # Update the existing PR
+              PR_NUMBER=$(echo $PR_EXISTING_URL | jq -r '.[0].number')
+              PR_URL=$(echo $PR_EXISTING_URL | jq -r '.[0].html_url')
+            else
+              # Create a new PR
+              PR_URL=$(curl -X POST \
+                -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+                -H "Accept: application/vnd.github.v3+json" \
+                -d '{
+                  "title": "Merge test-mode into main",
+                  "head": "test-mode",
+                  "base": "main"
+                }' \
+                "https://api.github.com/repos/${{ github.repository }}/pulls" | jq -r '.html_url')
+
+              PR_NUMBER=$(basename $PR_URL)
+              echo "Created new PR: $PR_URL with PR_NUMBER: $PR_NUMBER"
+            fi
+            echo "PR_NUMBER=$PR_NUMBER" >> $GITHUB_ENV
+            echo "PR_URL=$PR_URL" >> $GITHUB_ENV
           
           # Mention or notify users in a comment on the new PR
             COMMENT_TEXT="**Subject: Merge test-mode into main**\n\nThe PR for merging test-mode into main has been created. Please review it."
@@ -80,8 +94,7 @@ jobs:
             "body": "'"$COMMENT_TEXT"'",
             "in_reply_to": '"${PR_NUMBER}"'
             }' \
-              "https://api.github.com/repos/${{ github.repository }}/issues/${{ env.PR_NUMBER }}/comments"
-
+              "https://api.github.com/repos/${{ github.repository }}/issues/${{ PR_NUMBER }}/comments"
 
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
