@@ -13,88 +13,73 @@ jobs:
       - name: Check PR target branch
         id: check_target_branch
         run: echo "CHECK_TARGET_BRANCH=${{ github.ref }}" >> $GITHUB_ENV
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Check out the repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v2
 
-      - name: Fetch all branches
-        run: git fetch --all
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Create the PR
+      - name: Create and Merge PR
         if: ${{ env.CHECK_TARGET_BRANCH == 'refs/heads/develop' }}
         run: |
-          git config --global user.email "github-actions@github.com"
-          git config --global user.name "GitHub Actions"
-          # Create a PR using the GitHub API
-          PR_URL=$(curl -X POST \
-            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            -H "Accept: application/vnd.github.v3+json" \
-            -d '{
-              "title": "Merge develop into test-mode",
-              "head": "develop",
-              "base": "test-mode"
-            }' \
-            "https://api.github.com/repos/${{ github.repository }}/pulls" | jq -r '.html_url')
+          GITHUB_API="https://api.github.com/repos/${{ github.repository }}"
+          GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
 
+          create_pr() {
+            local title="$1"
+            local head="$2"
+            local base="$3"
+            local pr_url
+            pr_url=$(curl -X POST \
+              -H "Authorization: token $GITHUB_TOKEN" \
+              -H "Accept: application/vnd.github.v3+json" \
+              -d "{
+                \"title\": \"$title\",
+                \"head\": \"$head\",
+                \"base\": \"$base\"
+              }" \
+              "$GITHUB_API/pulls" | jq -r '.html_url')
+            echo "$pr_url"
+          }
+
+          merge_pr() {
+            local pr_number="$1"
+            curl -X PUT \
+              -H "Authorization: token $GITHUB_TOKEN" \
+              -d "{
+                \"commit_title\": \"Merge pull request\",
+                \"commit_message\": \"Merged by GitHub Actions\"
+              }" \
+              "$GITHUB_API/pulls/$pr_number/merge"
+          }
+
+          # Create PR from develop to test-mode
+          PR_URL=$(create_pr "Merge develop into test-mode" "develop" "test-mode")
           PR_NUMBER=$(basename $PR_URL)
           echo "Created PR: $PR_URL with PR_NUMBER: $PR_NUMBER"
-          echo "PR_NUMBER=$PR_NUMBER" >> $GITHUB_ENV
-          echo "PR_URL=$PR_URL" >> $GITHUB_ENV
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Automatically merge the PR
-        if: ${{ env.CHECK_TARGET_BRANCH == 'refs/heads/develop' }}
-        run: |
-          # Automatically merge the PR using GitHub API
-          curl -X PUT \
-            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            -d '{
-              "commit_title": "Merge pull request",
-              "commit_message": "Merged by GitHub Actions"
-            }' \
-            "https://api.github.com/repos/${{ github.repository }}/pulls/${{ env.PR_NUMBER }}/merge"
-          
-            # Check if a PR already exists from test-mode to main
-            PR_EXISTING_URL=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-              "https://api.github.com/repos/${{ github.repository }}/pulls?head=test-mode&base=main")
+          # Automatically merge the PR
+          merge_pr $PR_NUMBER
 
-            if [[ $(echo $PR_EXISTING_URL | jq length) -gt 0 ]]; then
-              # Update the existing PR
-              PR_NUMBER=$(echo $PR_EXISTING_URL | jq -r '.[0].number')
-              PR_URL=$(echo $PR_EXISTING_URL | jq -r '.[0].html_url')
-            else
-              # Create a new PR
-              PR_URL=$(curl -X POST \
-                -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-                -H "Accept: application/vnd.github.v3+json" \
-                -d '{
-                  "title": "Merge test-mode into main",
-                  "head": "test-mode",
-                  "base": "main"
-                }' \
-                "https://api.github.com/repos/${{ github.repository }}/pulls" | jq -r '.html_url')
+          # Create or update PR from test-mode to main
+          PR_EXISTING_URL=$(curl -s -H "Authorization: token $GITHUB_TOKEN" "$GITHUB_API/pulls?head=test-mode&base=main")
 
-              PR_NUMBER=$(basename $PR_URL)
-              echo "Created new PR: $PR_URL with PR_NUMBER: $PR_NUMBER"
-            fi
-            echo "PR_NUMBER=$PR_NUMBER" >> $GITHUB_ENV
-            echo "PR_URL=$PR_URL" >> $GITHUB_ENV
-          
+          if [[ $(echo $PR_EXISTING_URL | jq length) -gt 0 ]]; then
+            PR_NUMBER=$(echo $PR_EXISTING_URL | jq -r '.[0].number')
+            PR_URL=$(echo $PR_EXISTING_URL | jq -r '.[0].html_url')
+          else
+            PR_URL=$(create_pr "Merge test-mode into main" "test-mode" "main")
+            PR_NUMBER=$(basename $PR_URL)
+            echo "Created new PR: $PR_URL with PR_NUMBER: $PR_NUMBER"
+          fi
+
           # Mention or notify users in a comment on the new PR
-            COMMENT_TEXT="**Subject: Merge test-mode into main**\n\nThe PR for merging test-mode into main has been created. Please review it."
-              curl -X POST \
-            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+          COMMENT_TEXT="**Subject: Merge test-mode into main**\n\nThe PR for merging test-mode into main has been created/updated. Please review it."
+          curl -X POST \
+            -H "Authorization: token $GITHUB_TOKEN" \
             -H "Accept: application/vnd.github.v3+json" \
-              -d '{
-            "body": "'"$COMMENT_TEXT"'",
-            "in_reply_to": '"${PR_NUMBER}"'
-            }' \
-              "https://api.github.com/repos/${{ github.repository }}/issues/${PR_NUMBER}/comments"
-
+            -d "{
+              \"body\": \"$COMMENT_TEXT\",
+              \"in_reply_to\": $PR_NUMBER
+            }" \
+            "$GITHUB_API/issues/$PR_NUMBER/comments"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
