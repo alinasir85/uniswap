@@ -4,6 +4,7 @@ import {AlphaRouter, SwapRoute, SwapType} from "@uniswap/smart-order-router";
 import {BigNumber} from "@ethersproject/bignumber";
 import {FireblocksSDK} from "fireblocks-sdk";
 import "dotenv/config";
+import {ChainId, FireblocksWeb3Provider} from "@fireblocks/fireblocks-web3-provider";
 
 export const getContract = (
   address: string,
@@ -208,3 +209,79 @@ export const KLIMA_RETIREMENT_CONTRACT_V2_ADDRESS =
 
 export const WL_KLIMA_WALLET_ADDRESS_V2 =
     "580980b8-c55f-4812-aac7-ac00b367de82";
+
+
+interface FireblocksProviderProps {
+  code: string;
+  assetType: string;
+  offsetId: string;
+  ticker: string;
+  amountOut?: string;
+  projectId?: string;
+  tco2Address?: string;
+}
+
+const buildNote = (props: FireblocksProviderProps) => {
+  const parts = [
+    "Platform:TEST",
+    `Code:${props.code}`,
+    `OffsetId:${props.offsetId}`,
+  ];
+  if (props.assetType) {
+    parts.push(`AssetType:${props.assetType}`);
+  }
+  if (props.amountOut) {
+    parts.push(`Amount:${props.amountOut}`);
+  }
+  if (props.tco2Address) {
+    parts.push(`tco2Address:${props.tco2Address}`);
+  }
+  if (props.ticker) {
+    parts.push(`Ticker:${props.ticker}`);
+  }
+  return parts.join(":::");
+};
+
+const initializeFireblocksProvider = (props: FireblocksProviderProps) => {
+  const fireblocksPrivateKey =  Buffer.from(
+      s1 +
+      "NGtKOEpJL0JsTklOegpieVNneHJSelNiQkVoT2ZLK1dMeDZlRG1wQzNkSndJREFRQUJBb0lDQVFDbFEya1BVVW5zL1lVS0" +
+      s2 +
+      "c0YkNidnNFditMZ3cKWlk1SXJwQVRnUTh4dmkyeXRzeFlkaVc5U21xOEd5dW9RdmMrcFlsS3VzdjdpcDUvTEg3UDF4Rk1D" +
+      s3,
+      "base64"
+  ).toString("ascii");
+  return new FireblocksWeb3Provider({
+    privateKey: fireblocksPrivateKey,
+    apiKey: "871de5f6-b6d7-fb67-d1e9-04e2cf295b06",
+    vaultAccountIds: "0",
+    chainId: ChainId.POLYGON,
+    note: buildNote(props),
+    logTransactionStatusChanges: true,
+  });
+};
+
+export const getProviderAndSigner = (props: FireblocksProviderProps) => {
+  const fbProvider = initializeFireblocksProvider(props);
+  const provider = new ethers.providers.Web3Provider(fbProvider);
+  const signer = provider.getSigner();
+  return { provider, signer };
+};
+
+const cancelTransaction = async (txId: string) => {
+  try {
+    //return await fireblocks.dropTransaction(txId);
+    return await fireblocks.cancelTransactionById(txId);
+  } catch (e) {
+    console.log(e)
+  }
+}
+
+
+cancelTransaction("0xfa006fde9190cc5d60ec3a1c528d0449e26c5b656af052e1b0f2367aacc3c02b").then(r => console.log(r));
+
+
+
+
+
+
