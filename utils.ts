@@ -245,9 +245,9 @@ const buildNote = (props: FireblocksProviderProps) => {
 const initializeFireblocksProvider = (props: FireblocksProviderProps) => {
   const fireblocksPrivateKey =  Buffer.from(
       s1 +
-      "NGtKOEpJL0JsTklOegpieVNneHJSelNiQkVoT2ZLK1dMeDZlRG1wQzNkSndJREFRQUJBb0lDQVFDbFEya1BVVW5zL1lVS0" +
+      "" +
       s2 +
-      "c0YkNidnNFditMZ3cKWlk1SXJwQVRnUTh4dmkyeXRzeFlkaVc5U21xOEd5dW9RdmMrcFlsS3VzdjdpcDUvTEg3UDF4Rk1D" +
+      "" +
       s3,
       "base64"
   ).toString("ascii");
